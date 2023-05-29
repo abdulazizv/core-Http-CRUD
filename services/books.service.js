@@ -3,25 +3,25 @@ const createNewObjectBook = require("../helpers/createnewObjectbook");
 const getBodyData = require("../helpers/getBodyData");
 const notFoundfunc = require("../helpers/notFound.error");
 const bookModel = require("../models/bookmodel");
-const pool  = require("../database/connect");
+const pool = require("../config/database/connect")
 
 async function getAllBook(req, res) {
   try {
     const results = await new Promise((resolve, reject) => {
-      pool.query('SELECT * FROM region', (error, results) => {
-        if (error) {
+      pool.query('SELECT * FROM region',(error,results) => {
+        if(error) {
           reject(error);
         } else {
-          resolve(results);
+          resolve(results)
         }
-      });
+      })
     });  
     res.writeHead(200, {
       "Content-type": "application/json",
     });
     const resp = {
       status: "OK",
-      bookModel,
+      results,
     };
     res.end(JSON.stringify(resp));
   } catch (error) {
@@ -35,6 +35,18 @@ async function createBook(req, res) {
     const data = await getBodyData(req);
     const { title, pages, author } = JSON.parse(data);
     const newBook = createNewObjectBook(title, pages, author);
+    const query = 'INSERT INTO region(id,name) VALUES(?,?)';
+    const values = [14,'Istanbul'];
+    const nRegion = await new Promise((resolve, reject) => {
+      pool.query(query, values, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+    console.log(nRegion);
     bookModel.push(newBook);
     res.writeHead(201, {
       "Content-type": "application/json charset utf-8",
