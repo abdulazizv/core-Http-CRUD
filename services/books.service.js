@@ -8,7 +8,7 @@ const pool = require("../config/database/connect")
 async function getAllBook(req, res) {
   try {
     const results = await new Promise((resolve, reject) => {
-      pool.query('SELECT * FROM region',(error,results) => {
+      pool.query('SELECT * FROM book',(error,results) => {
         if(error) {
           reject(error);
         } else {
@@ -33,12 +33,10 @@ async function getAllBook(req, res) {
 async function createBook(req, res) {
   try {
     const data = await getBodyData(req);
-    const { title, pages, author } = JSON.parse(data);
-    const newBook = createNewObjectBook(title, pages, author);
-    const query = 'INSERT INTO region(id,name) VALUES(?,?)';
-    const values = [14,'Istanbul'];
-    const nRegion = await new Promise((resolve, reject) => {
-      pool.query(query, values, (error, result) => {
+    const { bookname } = JSON.parse(data);
+    const query = 'INSERT INTO book(bookname) VALUES(?)';
+    const nBook = await new Promise((resolve, reject) => {
+      pool.query(query,bookname, (error, result) => {
         if (error) {
           reject(error);
         } else {
@@ -46,14 +44,13 @@ async function createBook(req, res) {
         }
       });
     });
-    console.log(nRegion);
-    bookModel.push(newBook);
+    console.log(nBook);
     res.writeHead(201, {
       "Content-type": "application/json charset utf-8",
     });
     const resp = {
       status: "Created",
-      book: newBook,
+      book: nBook,
     };
     res.end(JSON.stringify(resp));
   } catch (error) {
