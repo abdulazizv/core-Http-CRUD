@@ -4,7 +4,8 @@ const pool = require('../database/connect');
 
 async function runMigrations() {
     try {
-        const migrationDir = path.resolve('E:\\Node_Js_1month\\Http\\migrations');
+        //
+        const migrationDir = path.resolve(__dirname,'../','../', 'migrations');
         const migrationFiles = fs.readdirSync(migrationDir);
 
         for (const migrationFile of migrationFiles) {

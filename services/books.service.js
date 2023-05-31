@@ -2,7 +2,7 @@ const basicErrorHandler = require("../helpers/basicErrorHandler");
 const createNewObjectBook = require("../helpers/createnewObjectbook");
 const getBodyData = require("../helpers/getBodyData");
 const notFoundfunc = require("../helpers/notFound.error");
-const bookModel = require("../models/bookmodel");
+const bookModel = require("../migrations/bookmodel");
 const pool = require("../config/database/connect")
 
 async function getAllBook(req, res) {
@@ -62,16 +62,23 @@ async function createBook(req, res) {
 async function getBookById(req, res) {
   try {
     const id = req.url.split("/")[2];
-    const book = bookModel.find((b) => b.id === id);
-    if (!book) {
-      notFoundfunc(res);
-    }
+    const query = "SELECT * FROM book WHERE id=?";
+    const oneBook = await new Promise((resolve,reject) => {
+        pool.query(query,id,(error,result) => {
+          if(error) {
+            reject(error)
+          } else {
+            resolve(result)
+          }
+        })
+    });
+
     res.writeHead(200, {
       "Content-type": "application/json charset utf-8",
     });
     const resp = {
       status: 200,
-      book: book,
+      book: oneBook,
     };
     res.end(JSON.stringify(resp));
   } catch (error) {
