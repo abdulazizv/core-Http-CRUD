@@ -2,7 +2,7 @@ const basicErrorHandler = require("../helpers/basicErrorHandler");
 const createNewObjectBook = require("../helpers/createnewObjectbook");
 const getBodyData = require("../helpers/getBodyData");
 const notFoundfunc = require("../helpers/notFound.error");
-const bookModel = require("../migrations/bookmodel");
+
 const pool = require("../config/database/connect")
 
 async function getAllBook(req, res) {
@@ -90,23 +90,30 @@ async function updateBook(req, res) {
   try {
     const id = req.url.split("/")[2];
     const body = await getBodyData(req);
-    const { title, pages, author } = JSON.parse(body);
-    const bookIndex = bookModel.findIndex((b) => (b.id = id));
-    if (bookIndex == -1) {
-      notFoundfunc(res);
-    }
+    const { bookname } = JSON.parse(body);
+    const query = "UPDATE book SET bookname=? WHERE id=?";
+    const values = [bookname,id]
+    const updatedBook = await new Promise((resolve,reject) => {
+      pool.query(query,values,(error,result) => {
+        if(error){
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      })
+    });
+
     res.writeHead(200, {
       "Content-type": "application/json charset utf-8",
     });
-    const updatedBook = createNewObjectBook(title, pages, author);
-    bookModel[bookIndex] = updatedBook;
     const resp = {
       status: 200,
       message: "Successfully updated",
-      updatedBook: bookModel[bookIndex],
+      updatedBook: updatedBook,
     };
     res.end(JSON.stringify(resp));
   } catch (error) {
+    console.log(error)
     basicErrorHandler(res);
   }
 }
