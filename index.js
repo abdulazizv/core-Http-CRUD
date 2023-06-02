@@ -3,7 +3,7 @@ const getBodyData = require("./helpers/getBodyData");
 const { v4 } = require("uuid");
 const { getAllBook, createBook, getBookById, updateBook, deleteBook } = require("./services/books.service");
 const basicErrorHandler = require("./helpers/basicErrorHandler");
-
+const {getAllOrder} = require("./services/order.service")
 const server = http.createServer(async (req, res) => {
   if (req.url === "/books" && req.method === "GET") {
     getAllBook(req,res);
@@ -15,7 +15,10 @@ const server = http.createServer(async (req, res) => {
       deleteBook(req,res)
   } else if (req.url.match(/\/books\/\w+/) && req.method === "PUT") {
       updateBook(req,res)
-  } else {
+  } else if(req.url === "/order" && req.method === "GET") {
+    getAllOrder(req,res)
+  }
+  else {
     res.writeHead(404, {
       "Content-type": "application/json charset utf-8",
     });
