@@ -2,7 +2,7 @@ const basicErrorHandler = require("../helpers/basicErrorHandler");
 const createNewObjectBook = require("../helpers/createnewObjectbook");
 const getBodyData = require("../helpers/getBodyData");
 const notFoundfunc = require("../helpers/notFound.error");
-
+const validationError = require("../helpers/validationError")
 const pool = require("../config/database/connect")
 
 async function getAllBook(req, res) {
@@ -15,7 +15,12 @@ async function getAllBook(req, res) {
           resolve(results)
         }
       })
-    });  
+    });
+
+    if(results.length < 1) {
+      notFoundfunc(res,'No content! Books table is empty')
+    }
+
     res.writeHead(200, {
       "Content-type": "application/json",
     });
@@ -34,6 +39,10 @@ async function createBook(req, res) {
   try {
     const data = await getBodyData(req);
     const { bookname } = JSON.parse(data);
+
+    if(!bookname || typeof bookname !== "string") {
+      return validationError(res)
+    }
     const query = 'INSERT INTO book(bookname) VALUES(?)';
     const nBook = await new Promise((resolve, reject) => {
       pool.query(query,bookname, (error, result) => {
@@ -73,6 +82,10 @@ async function getBookById(req, res) {
         })
     });
 
+    if(oneBook.length < 1) {
+      notFoundfunc(res,'No book found with this id')
+    }
+
     res.writeHead(200, {
       "Content-type": "application/json charset utf-8",
     });
@@ -89,6 +102,12 @@ async function getBookById(req, res) {
 async function updateBook(req, res) {
   try {
     const id = req.url.split("/")[2];
+    const check = await checkNotFound(id);
+
+    if(check.length < 1) {
+      notFoundfunc(res,'With id Book not found')
+    }
+
     const body = await getBodyData(req);
     const { bookname } = JSON.parse(body);
     const query = "UPDATE book SET bookname=? WHERE id=?";
@@ -102,6 +121,7 @@ async function updateBook(req, res) {
         }
       })
     });
+
 
     res.writeHead(200, {
       "Content-type": "application/json charset utf-8",
@@ -138,6 +158,27 @@ async function deleteBook(req, res) {
     basicErrorHandler(res)
   }
 }
+
+
+async function checkNotFound(id) {
+  try {
+    const query = 'SELECT * FROM book WHERE id = ?';
+    const result = await new Promise((resolve, reject) => {
+      pool.query(query,id,(error,result) => {
+        if(error){
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      })
+    })
+    return result;
+  } catch(e) {
+    console.error(e)
+  }
+
+}
+
 module.exports = {
   getAllBook,
   createBook,
